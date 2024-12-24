@@ -1,7 +1,7 @@
 <?php
 // Include the database connection file
 include 'connect.php';
-include 'aut.php';
+// include 'aut.php';
 
 // Fetch movies with 'inactive' status
 $query = "SELECT * FROM movies WHERE status='inactive'";
