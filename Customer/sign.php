@@ -4,6 +4,7 @@ include('connect.php'); // Ensure this file path is correct
 session_start();
 $action = $_GET['action'] ?? 'Login';
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
