@@ -3,7 +3,7 @@ session_start();
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
-    header('Location: login.php');
+    header('Location: ../login.php');
     exit;
 }
 
@@ -50,8 +50,9 @@ $userRole = $_SESSION['user_role'];
           <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           </button>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-            <a class="dropdown-item" href="../login.php">Logout</a>
-          </div>
+    <a id="profileLink" class="dropdown-item" href="#">Profile</a>
+    <a class="dropdown-item" href="../login.php">Logout</a>
+</div>
         </div>
       </div>
     </nav>
@@ -92,27 +93,14 @@ $userRole = $_SESSION['user_role'];
                   <p>Customer Feedback</p>
                 </a>
               </li>
-            <?php elseif ($userRole === 'Manager'): ?>
               <li class="nav-item">
-                <a href="?page=manage-schedule" class="nav-link">
+                <a href="?page=report" class="nav-link">
                   <i class="nav-icon fas fa-calendar-alt"></i>
-                  <p>Manage Movies</p>
+                  <p>view report</p>
                 </a>
               </li>
 
-            <?php elseif ($userRole === 'front_desk officer'): ?>
-              <li class="nav-item">
-                <a href="?page=view-schedule" class="nav-link">
-                  <i class="nav-icon fas fa-calendar-alt"></i>
-                  <p>View Schedule</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="?page=manage-tickets" class="nav-link">
-                  <i class="nav-icon fas fa-ticket-alt"></i>
-                  <p>Manage Tickets</p>
-                </a>
-              </li>
+            
             <?php endif; ?>
           </ul>
         </nav>
@@ -149,23 +137,9 @@ $userRole = $_SESSION['user_role'];
                           echo "<h2>Access Denied</h2>";
                       }
                       break;
-                  case 'manage-schedule':
-                      if ($userRole === 'Manager') {
-                          include 'manage_schedule.php';
-                      } else {
-                          echo "<h2>Access Denied</h2>";
-                      }
-                      break;
-                  case 'view-schedule':
-                      if ($userRole === 'front_desk officer') {
-                          include 'view_schedule.php';
-                      } else {
-                          echo "<h2>Access Denied</h2>";
-                      }
-                      break;
-                  case 'manage-tickets':
-                      if ($userRole === 'front_desk officer') {
-                          include 'manage_tickets.php';
+                  case 'report':
+                      if ($userRole === 'Admin') {
+                          include 'view_re.php';
                       } else {
                           echo "<h2>Access Denied</h2>";
                       }
@@ -192,6 +166,22 @@ $userRole = $_SESSION['user_role'];
     $(document).ready(function() {
         $('[data-widget="pushmenu"]').PushMenu();
     });
+  
+$(document).ready(function () {
+    // Load profile page content dynamically
+    $('#profileLink').on('click', function (e) {
+        e.preventDefault(); // Prevent default link behavior
+        $('.content-wrapper').load('profile.php', function (response, status, xhr) {
+            if (status === "error") {
+                console.error("Error loading profile: " + xhr.status + " " + xhr.statusText);
+                $('.content-wrapper').html('<h2>Error loading profile content. Please try again.</h2>');
+            }
+        });
+    });
+});
+
+
+
   </script>
 </body>
 </html>

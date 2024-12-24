@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "./includes/Database.php";
 require_once './includes/User.php';
 
@@ -32,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location:./Admin/Aheader.php');
             } elseif ($_SESSION['user_role'] === 'Manager') {
                 header('Location:./manager/mheader.php');
+            }elseif($_SESSION['user_role'] === 'Frontdeskofficer'){
+                header('Location:./Front_desk_Officer/fheader.php');
             }
             exit;
         } else {

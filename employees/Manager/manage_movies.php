@@ -29,13 +29,14 @@ if (isset($_GET['id'])) {
                 <input type="number" name="duration_min" class="form-control col-sm-2" max="59" min="0" required value="<?php echo isset($movieData['duration_min']) ? $movieData['duration_min'] : ''; ?>" placeholder="Minutes">
             </div>
             <div class="form-group">
-                <label for="date_showing" class="control-label">Realease Date</label>
-                <input name="date_showing" id="date_showing" type="date" class="form-control" required value="<?php echo isset($movieData['realease_date']) ? $movieData['realease_date'] : ''; ?>">
+                <label for="release_date" class="control-label">Release Date</label>
+                <input name="release_date" id="release_date" type="date" class="form-control" required value="<?php echo isset($movieData['release_date']) ? $movieData['release_date'] : ''; ?>">
+
             </div>
            
             <div class="form-group">
-        <label>YouTube Link</label>
-        <input type="url" name="youtube_link" class="form-control" value="<?php echo htmlspecialchars($movie['youtube_link'] ?? ''); ?>" placeholder="https://www.youtube.com/watch?v=XXXXX">
+        <label  for="youtube_link" class="control-label">YouTube Link</label>
+        <input type="url" name="youtube_link" class="form-control" value="<?php echo htmlspecialchars($movieData['youtube_link'] ?? ''); ?>" placeholder="https://www.youtube.com/watch?v=XXXXX">
     </div>
             <div class="form-group">
                 <label class="control-label">Cover Image</label>
@@ -43,6 +44,14 @@ if (isset($_GET['id'])) {
                     <img src="./assets/img/<?php echo $movieData['cover_img']; ?>" alt="" id="cover_img_preview" width="100">
                 <?php endif; ?>
                 <input type="file" name="cover" class="form-control-file" onchange="previewCoverImage(this)">
+            </div>
+             <!-- Status Field -->
+             <div class="form-group">
+                <label for="status" class="control-label">Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="active" <?php echo isset($movieData['status']) && $movieData['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
+                    <option value="inactive" <?php echo isset($movieData['status']) && $movieData['status'] == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                </select>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Save</button>
@@ -77,7 +86,7 @@ if (isset($_GET['id'])) {
             processData: false,
             contentType: false,
             success: function (response) {
-                if (response.trim() === '1') {
+                if (response.trim() !== '1') {
                     alert('Movie saved successfully.');
                     location.reload();
                 } else {

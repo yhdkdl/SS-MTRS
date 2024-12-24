@@ -48,6 +48,7 @@ $movies = $movieManager->getAllMovies();
                         <th class="text-center">Cover</th>
                         <th class="text-center">Title</th>
                         <th class="text-center">Description</th>
+                        <th class="text-center">Showing status</th>
                         <th class="text-center">Action</th>
                     </tr>
                     </thead>
@@ -61,6 +62,7 @@ $movies = $movieManager->getAllMovies();
                             <td><center><img src="./assets/img/<?php echo $movie['cover_img']; ?>" alt="Cover"></center></td>
                             <td><?php echo htmlspecialchars($movie['title']); ?></td>
                             <td><?php echo htmlspecialchars($movie['description']); ?></td>
+                            <td><?php echo htmlspecialchars($movie['status']); ?></td>
                             <td>
                                     <center>
                                         <div class="btn-group">
@@ -115,7 +117,7 @@ $movies = $movieManager->getAllMovies();
         const id = $(this).data('id');
         if (confirm('Are you sure you want to delete this movie?')) {
             $.post('ajax.php?action=delete_movie', {id: id}, function (resp) {
-                if (resp === '1') {
+                if (resp !== '1') {
                     alert('Movie successfully deleted.');
                     location.reload();
                 } else {

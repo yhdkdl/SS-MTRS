@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Design by foolishdeveloper.com -->
+    <title>Staff Login </title>
+ 
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="log.css">
+    <!--Stylesheet-->
+ 
+   
+</head>
+<body>
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+    <form method="POST" action="login.php">
+        <h3>Staff login</h3>
+
+        <label for="emp_id">Employee ID</label>
+        <input type="text" id="emp_id" name="emp_id" required  placeholder="id">
+
+        <label for="password">Password</label>
+        <input type="password"  id="password"  name="password"  placeholder="password" required  minlength="8"  pattern="(?=.*[a-z])(?=.*[A-Z]).{8,}"  title="Password must be at least 8 characters long, and include at least one uppercase and one lowercase letter."
+    > 
+    
+        <button type="submit" value="Login">Log In</button>
+        <?php if (!empty($error)): ?>
+                <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
+        <div class="social">
+          <div class="go"><i class="fab fa-google"></i>  Google</div>
+          <div class="fb"><i class="fab fa-facebook"></i>  Facebook</div>
+        </div>
+    </form>
+</body>
+</html>

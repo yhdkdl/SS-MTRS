@@ -48,6 +48,7 @@ $showtimes = $showManager->getAllShows();
                             <th class="text-center">Movie</th>
                             <th class="text-center">Room</th>
                             <th class="text-center">Start Time</th>
+                            <th class="text-center">Additional showprice</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -58,6 +59,7 @@ $showtimes = $showManager->getAllShows();
                                 <td><?= htmlspecialchars($showtime['movie']); ?></td>
                                 <td><?= htmlspecialchars($showtime['room']); ?></td>
                                 <td><?= htmlspecialchars($showtime['start_time']); ?></td>
+                                <td><?= htmlspecialchars($showtime['price']); ?></td>
                                 <td>
     <center>
         <div class="btn-group">

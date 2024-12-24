@@ -29,9 +29,10 @@ $meta = isset($_GET['id']) ? $cinema->getRoomById($_GET['id']) : [];
 
             </div>
             <div class="form-group">
-                <label for="capacity" class="control-label">Capacity</label>
-                <input type="number" name="capacity" id="capacity"class="form-control" value="<?php echo $meta['capacity'] ?? '' ?> " required >
-            </div>
+    <label for="capacity" class="control-label">Capacity</label>
+    <input type="number" name="capacity" id="capacity" class="form-control" value="<?php echo $meta['capacity'] ?? '' ?>" required readonly>
+</div>
+
             <div class="form-group">
                 <label for="base-price" class="control-label">Base Price</label>
                 <input type="number" name="base_price" id="base-price" required class="form-control" value="<?php echo $meta['base_price'] ?? '' ?>">

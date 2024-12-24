@@ -28,8 +28,8 @@ public function getMovieById($id) {
     public function saveMovie($data, $files) {
         $title = htmlspecialchars($data['title']);
         $description = htmlspecialchars($data['description']);
-        $realease_date = $data['realease_date'];
-        $end_date = $data['end_date'];
+        $release_date = $data['release_date']; // Make sure the form field has the correct name
+
         $duration = (int)$data['duration_hour'] . '.' . round(((int)$data['duration_min'] / 60) * 100, 2);
         $youtube_link = htmlspecialchars($_POST['youtube_link']);
         $cover_img = null;
@@ -37,20 +37,27 @@ public function getMovieById($id) {
             $cover_img = time() . '_' . basename($files['cover']['name']);
             move_uploaded_file($files['cover']['tmp_name'], './assets/img/' . $cover_img);
         }
-
+        
+        // Get the status (active or inactive)
+        $status = isset($data['status']) ? $data['status'] : 'inactive';
+    
         if (!empty($data['id'])) {
-            $stmt = $this->db->prepare("UPDATE movies SET title = ?, description = ?, realease_date = ?, end_date = ?, duration = ?, youtube_link = ?, cover_img = IFNULL(?, cover_img) WHERE id = ?");
-            $stmt->bind_param("sssssssi", $title, $description, $realease_date, $duration,$youtube_link, $cover_img, $data['id']);
-        } else {
-            $stmt = $this->db->prepare("INSERT INTO movies (title, description, realease_date, end_date, duration,youtube_link, cover_img) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssss", $title, $description, $realease_date, $end_date, $duration,$youtube_link, $cover_img);
-        }
+           // Update query
+$stmt = $this->db->prepare("UPDATE movies SET title = ?, description = ?,  duration = ?,release_date = ?, youtube_link = ?, cover_img = IFNULL(?, cover_img), status = ? WHERE id = ?");
+$stmt->bind_param("sssssssi", $title, $description, $duration,$release_date, $youtube_link, $cover_img, $status, $data['id']);
 
-        if ($stmt->execute()) {
-            return '1';
+        } else {
+            // Insert new movie with the status field
+            $stmt = $this->db->prepare("INSERT INTO movies (title, description, release_date,  duration, youtube_link, cover_img, status) VALUES ( ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssss", $title, $description,  $duration, $release_date, $youtube_link, $cover_img, $status);
         }
-        return $stmt->error;
+    
+        if ($stmt->execute()) {
+            return '1'; // Successfully executed
+        }
+        return $stmt->error; // Return error message if failed
     }
+    
    
     public function deleteMovie($id) {
         $stmt = $this->db->prepare("DELETE FROM movies WHERE id = ?");
@@ -60,6 +67,13 @@ public function getMovieById($id) {
     
      //-------------------------------------showtimes-------------------------------------------------------
     // Get all cinema rooms
+    public function getAllactiveMovies() {
+        $stmt = $this->db->prepare("SELECT * FROM movies WHERE status = 'active'");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+    
     public function getAllRooms() {
         $result = $this->db->query("SELECT id, name FROM CinemaRooms");
 
@@ -84,8 +98,8 @@ public function getMovieById($id) {
     // Get all showtimes (including movie and room information)
     public function getAllShows() {
         $result = $this->db->query("
-            SELECT s.id, m.title AS movie, r.name AS room, s.start_time
-            FROM Shows s
+            SELECT s.id, m.title AS movie, r.name AS room, s.start_time,s.price
+            FROM Showtime s
             JOIN Movies m ON s.movie_id = m.id
             JOIN CinemaRooms r ON s.room_id = r.id
         ");
@@ -103,7 +117,7 @@ public function getMovieById($id) {
     public function getShowById($id) {
         $stmt = $this->db->prepare("
             SELECT id, movie_id, room_id, start_time
-            FROM Shows WHERE id = ?
+            FROM Showtime WHERE id = ?
         ");
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -114,7 +128,7 @@ public function getMovieById($id) {
     // Save a showtime (either update or insert)
     public function saveShowtime($data) {
         // Check if required fields are provided
-        if (!isset($data['movie_id']) || !isset($data['room_id']) || !isset($data['start_time'])) {
+        if (!isset($data['movie_id']) || !isset($data['room_id']) || !isset($data['start_time']) || !isset($data['price'])) {
             return 'Error: Missing required fields (movie_id, room_id, start_time)';
         }
     
@@ -122,22 +136,23 @@ public function getMovieById($id) {
         $movie_id = $data['movie_id'];
         $room_id = $data['room_id'];
         $start_time = $data['start_time'];
+        $price = $data['price'];
     
         // Convert start_time to MySQL-compatible datetime format (use 'Y-m-d H:i:s' format)
         $start_time = date('Y-m-d H:i:s', strtotime($start_time));
     
         // Debugging: Log the data being passed
-        error_log("Received data: movie_id=$movie_id, room_id=$room_id, start_time=$start_time");
+        error_log("Received data: movie_id=$movie_id, room_id=$room_id, start_time=$start_time,price=$price");
     
         // Prepare the SQL statement based on whether it's an insert or update
         if ($id) {
             // Update existing showtime
-            $stmt = $this->db->prepare("UPDATE Shows SET movie_id = ?, room_id = ?, start_time = ? WHERE id = ?");
-            $stmt->bind_param('iisi', $movie_id, $room_id, $start_time, $id);
+            $stmt = $this->db->prepare("UPDATE Showtime SET movie_id = ?, room_id = ?, start_time = ? , price = ? WHERE id = ?");
+            $stmt->bind_param('iisii', $movie_id, $room_id, $start_time,$price, $id);
         } else {
             // Insert new showtime
-            $stmt = $this->db->prepare("INSERT INTO Shows (movie_id, room_id, start_time) VALUES (?, ?, ?)");
-            $stmt->bind_param('iis', $movie_id, $room_id, $start_time);
+            $stmt = $this->db->prepare("INSERT INTO Showtime (movie_id, room_id, start_time,price) VALUES (?, ?, ?,?)");
+            $stmt->bind_param('iisi', $movie_id, $room_id, $start_time,$price);
         }
     
         // Execute the statement
@@ -154,7 +169,7 @@ public function getMovieById($id) {
   
     // Delete a showtime by ID
 public function deleteShowtime($id) {
-    $stmt = $this->db->prepare("DELETE FROM Shows WHERE id = ?");
+    $stmt = $this->db->prepare("DELETE FROM Showtime WHERE id = ?");
     $stmt->bind_param("i", $id);
 
     // Execute the delete query
