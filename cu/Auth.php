@@ -1,52 +1,44 @@
 <?php
+function login($email, $password, $conn) {
+    $stmt = $conn->prepare("SELECT * FROM customers WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-require_once '../employees/includes/Database.php';
-
-class Auth {
-    private $db;
-
-    public function __construct() {
-        $database = new Database();
-        $this->db = $database->getConnection();
+    if ($result->num_rows === 0) {
+        return "Invalid email or password.";
     }
 
-    public function login($email, $password) {
-        $query = $this->db->prepare("SELECT * FROM customers WHERE email = ?");
-        $query->bind_param('s', $email);
-        $query->execute();
-        $result = $query->get_result();
-
-        if ($result && $result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['password'])) {
-                // Password matches
-                $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'name' => $user['name'],
-                    'email' => $user['email'],
-                ];
-                return true;
-            }
-        }
-        return false; // Invalid credentials
+    $user = $result->fetch_assoc();
+    if (!password_verify($password, $user['password'])) {
+        return "Invalid email or password.";
     }
 
-    public function signup($name, $email, $password) {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT); // Hash the password
-        $query = $this->db->prepare("INSERT INTO customers (name, email, password) VALUES (?, ?, ?)");
-        $query->bind_param('sss', $name, $email, $hashedPassword);
-
-        if ($query->execute()) {
-            $_SESSION['user'] = [
-                'id' => $query->insert_id,
-                'name' => $name,
-                'email' => $email,
-            ];
-            return true;
-        } else {
-            return false;
-        }
-    }
+    session_start();
+    $_SESSION['user'] = [
+        'id' => $user['id'],
+        'name' => $user['name'],
+        'email' => $user['email'],
+    ];
+    return null;
 }
 
+function signup($name, $email, $password, $conn) {
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+    $stmt = $conn->prepare("INSERT INTO customers (name, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $name, $email, $hashedPassword);
+
+    if ($stmt->execute()) {
+        session_start();
+        $_SESSION['user'] = [
+            'id' => $stmt->insert_id,
+            'name' => $name,
+            'email' => $email,
+        ];
+        return null;
+    } else {
+        return "Sign up failed. Try again later.";
+    }
+}
 ?>
