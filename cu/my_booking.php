@@ -56,7 +56,7 @@ $bookings = $movie->getUserBookings($customer_id);
                     <th>Total Price</th>
                     <th>Booking Status</th>
                     <th>Receipt</th>
-                    <th>Ticket</th>
+                    <th>Cancel Booking</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,15 +94,28 @@ $bookings = $movie->getUserBookings($customer_id);
         </form>
     <?php endif; ?>
 </td>
+<td>
+     <!-- Disable the cancel button if the booking status is 'confirmed' -->
+     <?php if (strtolower($row['status']) === 'confirmed'): ?>
+                    <button class="cancel-button" disabled>Cancel</button>
+                <?php else: ?>
+<button 
+        class="cancel-booking" 
+        data-booking-id="<?= htmlspecialchars($row['booking_id'] ?? '') ?>" 
+        data-seats="<?= htmlspecialchars($row['selected_seats'] ?? '') ?>" 
+        data-showtime-id="<?= htmlspecialchars($row['booking_showtime_id'] ?? '') ?>">
+        Cancel
+    </button>
+    <?php
+// Debugging output
+//var_dump($row['booking_id'], $row['selected_seats'], $row['booking_showtime_id']);
+?>
 
-                        <td>
-                            <?php if ($row['ticket'] && strtolower($row['status']) === 'confirmed' && strtolower($row['payment_status']) === 'paid'): ?>
-                                <a href="<?= htmlspecialchars($row['ticket']) ?>" target="_blank">View</a>
-                                <a href="<?= htmlspecialchars($row['ticket']) ?>" download>Download</a>
-                            <?php else: ?>
-                                <span>Not available</span>
-                            <?php endif; ?>
-                        </td>
+<?php endif; ?>
+
+</td>
+
+
                     </tr>
                 <?php endwhile; ?>
             </tbody>
@@ -110,5 +123,49 @@ $bookings = $movie->getUserBookings($customer_id);
     <?php else: ?>
         <p>You have no bookings yet.</p>
     <?php endif; ?>
+    <script>
+document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('cancel-booking')) {
+        const bookingId = event.target.getAttribute('data-booking-id');
+        const selectedSeats = event.target.getAttribute('data-seats');
+        const showtimeId = event.target.getAttribute('data-showtime-id');
+
+        if (!confirm('Are you sure you want to cancel this booking?')) {
+            return;
+        }
+    //     <button 
+    //     class="cancel-booking" 
+    //     data-booking-id="<?= htmlspecialchars($row['booking_id'] ?? '') ?>" 
+    //     data-seats="<?= htmlspecialchars($row['selected_seats'] ?? '') ?>" 
+    //     data-showtime-id="<?= htmlspecialchars($row['booking_showtime_id'] ?? '') ?>">
+    //     Cancel
+    // </button>
+
+        const formData = new FormData();
+        formData.append('booking_id', bookingId);
+        formData.append('selected_seats', selectedSeats);
+        formData.append('showtime_id', showtimeId);
+
+        fetch('cancel_booking.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            if (data.trim() === 'Success') {
+                alert('Booking cancelled successfully.');
+                location.reload();
+            } else {
+                alert(data); // Show error message from server
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while canceling the booking.');
+        });
+    }
+});
+</script>
+
 </body>
 </html>

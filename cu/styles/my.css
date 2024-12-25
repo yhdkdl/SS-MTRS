@@ -11,6 +11,20 @@ h1 {
     color: #ffcc00;
     margin-bottom: 20px;
 }
+.cancel-button {
+    background-color: #f44336; /* Red color for enabled button */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.cancel-button[disabled] {
+    background-color: #cccccc; /* Gray color for disabled button */
+    cursor: not-allowed;
+}
+
 
 table {
     width: 100%;

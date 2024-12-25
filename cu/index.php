@@ -48,7 +48,7 @@ $activeMovies = $movie->getActiveMovies();
         <div class="bx bx-menu" id="menu-icon"></div>
         <ul class="navbar">
             <li><a href="index.php" class="home-active">Home</a></li>
-            <li><a href="#movies">Now showing</a></li>
+            <li><a href="#movies">Movies </a></li>
             <li><a href="#coming">Coming</a></li>
             <li><a href="#newsletter">Feedback</a></li>
         </ul>

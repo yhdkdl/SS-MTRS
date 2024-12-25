@@ -125,6 +125,7 @@ class Movie
         $seat_stmt->execute();
         return $seat_stmt->get_result();
     }
+    
 // Method to generate unique booking ID
     public function generateBookingId() {
         do {
@@ -198,26 +199,39 @@ class Movie
     // Fetch user bookings
     public function getUserBookings($customer_id) {
         $query = "
-            SELECT 
-                bookings.id AS booking_id, 
-                bookings.total_price, 
-                bookings.status, 
-                bookings.payment_status, 
-                bookings.receipt_img, 
-                bookings.ticket, 
-                GROUP_CONCAT(seats.seat_number SEPARATOR ', ') AS selected_seats, 
-                showtime.start_time AS showtime, 
-                movies.title AS movie_title, 
-                customers.name AS customer_name, 
-                customers.email AS customer_email 
-            FROM bookings
-            JOIN booked_seats ON bookings.id = booked_seats.booking_id
-            JOIN seats ON booked_seats.seat_id = seats.id
-            JOIN showtime ON bookings.showtime_id = showtime.id
-            JOIN movies ON showtime.movie_id = movies.id
-            JOIN customers ON bookings.customer_id = customers.id
-            WHERE bookings.customer_id = ?
-            GROUP BY bookings.id
+   SELECT 
+    bookings.id AS booking_id, 
+    bookings.total_price, 
+    bookings.status, 
+    bookings.payment_status, 
+    bookings.receipt_img, 
+    bookings.ticket, 
+    GROUP_CONCAT(seats.seat_number SEPARATOR ', ') AS selected_seats, 
+    showtime.start_time AS showtime, 
+    showtime.id AS booking_showtime_id, -- Alias added
+    movies.title AS movie_title, 
+    customers.name AS customer_name, 
+    customers.email AS customer_email 
+FROM bookings
+JOIN booked_seats ON bookings.id = booked_seats.booking_id
+JOIN seats ON booked_seats.seat_id = seats.id
+JOIN showtime ON bookings.showtime_id = showtime.id
+JOIN movies ON showtime.movie_id = movies.id
+JOIN customers ON bookings.customer_id = customers.id
+WHERE bookings.customer_id = ?
+GROUP BY 
+    bookings.id, 
+    bookings.total_price, 
+    bookings.status, 
+    bookings.payment_status, 
+    bookings.receipt_img, 
+    bookings.ticket, 
+    showtime.start_time, 
+    showtime.id, 
+    movies.title, 
+    customers.name, 
+    customers.email;
+
         ";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param("i", $customer_id);
@@ -275,6 +289,53 @@ public function saveReceipt($booking_id, $customer_id, $file_name) {
     $stmt->close();
 }
 
+public function cancelBooking($bookingId, $seats, $showtimeId) {
+    // Begin transaction
+    $this->db->begin_transaction();
 
+    try {
+        // Update booking status to 'cancelled'
+        $stmt = $this->db->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?");
+        $stmt->bind_param('i', $bookingId);
+        $stmt->execute();
+
+        // Release the seats
+        $seatIds = explode(',', $seats);
+        $placeholders = implode(',', array_fill(0, count($seatIds), '?'));
+        $seatQuery = "UPDATE seats SET is_booked = 0, status = 0 WHERE id IN ($placeholders)";
+        $stmt = $this->db->prepare($seatQuery);
+        $stmt->bind_param(str_repeat('i', count($seatIds)), ...$seatIds);
+        $stmt->execute();
+
+        // Commit transaction
+        $this->db->commit();
+
+        return true;
+    } catch (Exception $e) {
+        // Rollback on error
+        $this->db->rollback();
+        throw $e;
+    }
+}
+
+public function submitFeedback($customerEmail, $feedbackText)
+    {
+        $query = "INSERT INTO feedback (customer_email, feedback_text) VALUES (?, ?)";
+        $stmt = $this->db->prepare($query);
+
+        if (!$stmt) {
+            return ["success" => false, "message" => "Failed to prepare statement: " . $this->db->error];
+        }
+
+        $stmt->bind_param("ss", $customerEmail, $feedbackText);
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            return ["success" => true, "message" => "Feedback submitted successfully!"];
+        } else {
+            $stmt->close();
+            return ["success" => false, "message" => "Error: " . $this->db->error];
+        }
+    }
 }
 ?>
