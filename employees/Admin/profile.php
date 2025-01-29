@@ -2,9 +2,9 @@
 session_start();
 include '../includes/Database.php'; // Include the Database class
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+// Check if user is logged in and came through the login flow
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: ../login.php');
     exit;
 }
 
@@ -17,11 +17,11 @@ $user_id = $_SESSION['user_id'];
 
 // Fetch user data from either `employee` or `TH_admin` table
 $sql = "
-    SELECT emp_id, full_Name,phone, email, role 
+    SELECT emp_id, full_Name, phone, email, role 
     FROM (
-        SELECT emp_id, full_Name,phone, email, role FROM employee
+        SELECT emp_id, full_Name, phone, email, role FROM employee
         UNION ALL
-        SELECT emp_id, full_Name,phone, email, role FROM TH_admin
+        SELECT emp_id, full_Name, phone, email, role FROM TH_admin
     ) AS combined_tables
     WHERE emp_id = ?
 ";
@@ -36,7 +36,11 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $user_data = $result->fetch_assoc(); // Fetch user data
 } else {
-    die("User not found.");
+    // If no user is found, destroy session and redirect to login
+    session_unset();
+    session_destroy();
+    header('Location: ../login.php');
+    exit;
 }
 ?>
 
@@ -60,8 +64,6 @@ if ($result->num_rows > 0) {
     <link rel="stylesheet" href="../includes/assets/css/style.css">
 </head>
 <body>
- 
-
     <!-- Page Wrapper -->
     <div class="page-wrapper">
         <div class="content container-fluid">
@@ -70,7 +72,6 @@ if ($result->num_rows > 0) {
                 <div class="row">
                     <div class="col">
                         <h3 class="page-title">Profile</h3>
-                       
                     </div>
                 </div>
             </div>
@@ -80,16 +81,16 @@ if ($result->num_rows > 0) {
                 <div class="col-md-12">
                     <div class="profile-header">
                         <div class="row align-items-center">
-                           
                             <div class="col ml-md-n2 profile-user-info">
-                                <h4 class="user-name mb-2 text-uppercase"> <i class="fa fa-id-badge" aria-hidden="true"></i> 
-                                <?php echo htmlspecialchars($user_data['emp_id']); ?></h4>
-                                
+                                <h4 class="user-name mb-2 text-uppercase">
+                                    <i class="fa fa-id-badge" aria-hidden="true"></i> 
+                                    <?php echo htmlspecialchars($user_data['emp_id']); ?>
+                                </h4>
                                 <div class="about-text"><?php echo htmlspecialchars($user_data['role']); ?></div>
                             </div>
                         </div>
                     </div>
-                   
+                    
                     <div class="tab-content profile-tab-cont">
                         <!-- Personal Details Tab -->
                         <div class="tab-pane fade show active" id="per_details_tab">
@@ -110,7 +111,7 @@ if ($result->num_rows > 0) {
                                                 <p class="col-sm-9"><?php echo htmlspecialchars($user_data['role']); ?></p>
                                             </div>
                                             <div class="row">
-                                                <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">phone</p>
+                                                <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">Phone</p>
                                                 <p class="col-sm-9"><?php echo htmlspecialchars($user_data['phone']); ?></p>
                                             </div>
                                         </div>

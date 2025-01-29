@@ -32,7 +32,7 @@ $bookings = $movie->getUserBookings($customer_id);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings</title>
-    <link rel="stylesheet" href="../Customer/styles/my.css">
+    <link rel="stylesheet" href="../cu/styles/my.css">
 </head>
 <body>
     <a href="index.php" class="logo">
@@ -40,7 +40,7 @@ $bookings = $movie->getUserBookings($customer_id);
     </a>
     <div class="bx bx-menu" id="menu-icon"></div>
     <ul class="navbar">
-        <li><a href="index.php" class="home-active"> &lt;= Back Home</a></li>
+        <li><a href="main.php" class="home-active"> &lt;= Back Home</a></li>
     </ul>
     <h1>My Bookings</h1>
 

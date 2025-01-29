@@ -34,9 +34,9 @@ class inserts {
         $email = $this->sanitizeEmail($data['email'] ?? null);
         $role = $this->sanitizeRole($data['role'] ?? null);
         $password = $data['password'] ?? null;
-        
+    
         // Validate required fields
-        if (!$full_name || !$phone || !$email || !$role || !$password) {
+        if (!$full_name || !$phone || !$email || !$role) {
             return "All fields are required!";
         }
     
@@ -50,19 +50,36 @@ class inserts {
             return "Phone number must be 10 digits!";
         }
     
-        // Hash the password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        // Validate password format (at least 8 characters, one uppercase, one lowercase, one special character)
+        if ($password && !preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/', $password)) {
+            return "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, and one special character.";
+        }
+    
+        // Hash the password only if it's provided
+        $hashed_password = $password ? password_hash($password, PASSWORD_DEFAULT) : null;
     
         if ($emp_id && $this->check_employee_exists($emp_id)) {
-            // Update existing employee
-            $query = "UPDATE employee SET full_name = ?, phone = ?, email = ?, role = ?, password = ? WHERE emp_id = ?";
-            $stmt = $this->db->prepare($query);
-            if (!$stmt) {
-                return "Prepare failed: " . $this->db->error;
+            // Update existing employee (exclude password if not provided)
+            if ($hashed_password) {
+                $query = "UPDATE employee SET full_name = ?, phone = ?, email = ?, role = ?, password = ? WHERE emp_id = ?";
+                $stmt = $this->db->prepare($query);
+                if (!$stmt) {
+                    return "Prepare failed: " . $this->db->error;
+                }
+                $stmt->bind_param("ssssss", $full_name, $phone, $email, $role, $hashed_password, $emp_id);
+            } else {
+                $query = "UPDATE employee SET full_name = ?, phone = ?, email = ?, role = ? WHERE emp_id = ?";
+                $stmt = $this->db->prepare($query);
+                if (!$stmt) {
+                    return "Prepare failed: " . $this->db->error;
+                }
+                $stmt->bind_param("sssss", $full_name, $phone, $email, $role, $emp_id);
             }
-            $stmt->bind_param("ssssss", $full_name, $phone, $email, $role, $hashed_password, $emp_id);
         } elseif (!$emp_id) {
             // Insert new employee with auto-generated emp_id
+            if (!$password) {
+                return "Password is required for new employees!";
+            }
             $query = "INSERT INTO employee (full_name, phone, email, role, password, created_at) 
                       VALUES (?, ?, ?, ?, ?, NOW())";
             $stmt = $this->db->prepare($query);
@@ -72,6 +89,9 @@ class inserts {
             $stmt->bind_param("sssss", $full_name, $phone, $email, $role, $hashed_password);
         } else {
             // Insert new employee with custom emp_id
+            if (!$password) {
+                return "Password is required for new employees!";
+            }
             $query = "INSERT INTO employee (emp_id, full_name, phone, email, role, password, created_at) 
                       VALUES (?, ?, ?, ?, ?, ?, NOW())";
             $stmt = $this->db->prepare($query);
@@ -91,7 +111,6 @@ class inserts {
         return "1";  // Indicating success
     }
     
-  
     
     private function check_employee_exists($emp_id) {
         $query = "SELECT emp_id FROM employee WHERE emp_id = '$emp_id'";
@@ -278,10 +297,11 @@ private function sanitizeEmail($email) {
     return filter_var(trim($email), FILTER_SANITIZE_EMAIL);
 }
   // Function to sanitize emp_id (ensure it's a valid integer)
-  private function sanitizeEmpId($emp_id) {
-    // Remove non-numeric characters (if emp_id is expected to be purely numeric)
-    return preg_replace("/[^0-9]/", "", $emp_id);
+ private function sanitizeEmpId($emp_id) {
+    // Remove special characters, keeping only letters (a-z, A-Z) and numbers (0-9)
+    return preg_replace("/[^a-zA-Z0-9]/", "", $emp_id);
 }
+
 
 // Function to sanitize full name (allow alphabets and spaces, strip others)
 private function sanitizeFullName($string) {

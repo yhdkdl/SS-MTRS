@@ -73,7 +73,6 @@ try {
 
     // Send success response
     echo json_encode(['success' => true, 'message' => 'Booking canceled successfully.']);
-  
 } catch (Exception $e) {
     // Rollback the transaction on error
     $conn->rollback();

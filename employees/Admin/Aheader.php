@@ -1,15 +1,41 @@
 <?php
 session_start();
+// // Define a base directory constant
+// define('BASE_DIR', dirname(__DIR__, 2)); // Adjust level to point to the root
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+// // Include the auth middleware
+// require_once BASE_DIR . '/midlware/auth.php';
+
+// // Check the role
+// checkRole('admin');
+include "auth.php";
+// include "";
+// Prevent browser caching of protected pages
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+// Redirect if the user is not logged in or bypassed the login flow
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: ../login.php');
     exit;
 }
 
+// Check for inactivity timeout
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $_SESSION['timeout']) {
+  // Destroy the session and redirect to login
+  session_unset();
+  session_destroy();
+  header('Location: ../login.php?error=session_timeout');
+  exit;
+}
+
+// Update the last activity time
+$_SESSION['last_activity'] = time();
 // Get the user's role
 $userRole = $_SESSION['user_role'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,7 +77,7 @@ $userRole = $_SESSION['user_role'];
           </button>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
     <a id="profileLink" class="dropdown-item" href="#">Profile</a>
-    <a class="dropdown-item" href="../login.php">Logout</a>
+    <a class="dropdown-item" href="logout.php">Logout</a>
 </div>
         </div>
       </div>
@@ -149,7 +175,7 @@ $userRole = $_SESSION['user_role'];
                       break;
               }
           } else {
-              echo "<h1>Welcome to the Dashboard</h1>";
+              echo "<h1>Welcome to the Admin Dashboard</h1>";
           }
           ?>
         </div>
@@ -179,6 +205,26 @@ $(document).ready(function () {
         });
     });
 });
+let inactivityTime = function () {
+        let time;
+        // Reset the timer when activity is detected
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        document.onscroll = resetTimer;
+
+        function logout() {
+            alert("You have been logged out due to inactivity.");
+            window.location.href = "../login.php?error=session_timeout"; // Redirect to login page
+        }
+
+        function resetTimer() {
+            clearTimeout(time);
+            time = setTimeout(logout, 15 * 60 * 1000); // 15 minutes
+        }
+    };
+
+    inactivityTime();
 
 
 

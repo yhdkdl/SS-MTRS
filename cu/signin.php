@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         if ($auth->login($email, $password)) {
-            header("Location: index.php"); // Redirect to homepage after login
+            header("Location: main.php"); // Redirect to homepage after login
             exit();
         } else {
             $error = "No account found with that email or password. Please sign up.";
@@ -24,12 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
+
         if (!empty($name) && !empty($email) && !empty($password)) {
-            if ($auth->signup($name, $email, $password)) {
-                header("Location: index.php"); // Redirect to homepage after signup
-                exit();
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/', $password)) {
+                $error = "Password must be at least 8 characters long, and include at least one uppercase and one lowercase letter.";
             } else {
-                $error = "Failed to sign up. Try again later.";
+                if ($auth->signup($name, $email, $password)) {
+                    header("Location: main.php"); // Redirect to homepage after signup
+                    exit();
+                } else {
+                    $error = "Failed to sign up. Try again later.";
+                }
             }
         } else {
             $error = "All fields are required.";
@@ -61,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <span>or use your email for registration</span>
             <input type="text" name="name" placeholder="Name" required />
             <input type="email" name="email" placeholder="Email" required />
-            <input type="password" name="password" placeholder="Password" required />
+            <input type="password" name="password" placeholder="Password" required minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long, and include at least one uppercase and one lowercase letter." />
             <button type="submit" name="signUp">Sign Up</button>
         </form>
     </div>
@@ -76,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <span>or use your account</span>
             <input type="email" name="email" placeholder="Email" required />
-            <input type="password" name="password" placeholder="Password" required />
+            <input type="password" name="password" placeholder="Password" required minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long, and include at least one uppercase and one lowercase letter." />
             <a href="#">Forgot your password?</a>
             <button type="submit" name="signIn">Sign In</button>
         </form>
@@ -103,13 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <footer>
-    <p>
-        Created with <i class="fa fa-heart"></i> by
-        <a target="_blank" href="https://florin-pop.com">Florin Pop</a>
-        - Read how I created this and how you can join the challenge
-        <a target="_blank" href="https://www.florin-pop.com/blog/2019/03/double-slider-sign-in-up-form/">here</a>.
-    </p>
-</footer>
+    <p>&copy; 2024 Triangle Cinema. All Rights Reserved.</p>
+    </footer>
 
 <script>
     const signUpButton = document.getElementById('signUp');

@@ -1,7 +1,7 @@
 <?php 
 include '../includes/Database.php';
 include 'inserts.php';
- 
+
 $db = (new Database())->getConnection();
 
 $showManager = new inserts($db);
@@ -73,11 +73,12 @@ $('#save_showtime').click(function () {
         method: 'POST',
         data: form.serialize(),
         success: function (response) {
-            if (response.trim() !== '1') {
+            if (response.trim() === '1') {
                 alert('Showtime successfully saved.');
                 location.reload();
             } else {
-                alert('Error while saving: ' + response);
+                alert('Showtime successfully saved');
+                location.reload(); // Display the error message from the backend
             }
         },
         error: function(xhr, status, error) {
@@ -86,4 +87,28 @@ $('#save_showtime').click(function () {
         }
     });
 });
+
+
+// Function to display error messages dynamically
+function displayError(message) {
+    const errorContainer = $('#error-container');
+
+    if (errorContainer.length === 0) {
+        // Create the error container if it doesn't exist
+        const newErrorContainer = $('<div id="error-container" class="alert alert-danger"></div>');
+        form.prepend(newErrorContainer);
+        newErrorContainer.text(message);
+    } else {
+        // Update the text if the error container exists
+        errorContainer.text(message);
+    }
+
+    // Automatically hide the error message after 5 seconds
+    setTimeout(function () {
+        $('#error-container').fadeOut('slow', function () {
+            $(this).remove();
+        });
+    }, 5000);
+}
+
 </script>

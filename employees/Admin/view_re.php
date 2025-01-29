@@ -1,13 +1,13 @@
 <?php
 
-// Ensure the user is logged in and is an admin
-// Uncomment the lines below if authentication is needed
-// if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-//     header("Location: ../login.php");
-//     exit;
-// }
+require_once 'auth.php'; // Validate session
 
-// Define the directory where reports are stored
+// Check if the user has the correct role
+if ($userRole !== 'Admin') {
+    echo "<h1>Access Denied</h1>";
+    exit;
+}
+
 $reports_dir = '../Front_desk_Officer/reports/';
 
 // Check if the directory exists

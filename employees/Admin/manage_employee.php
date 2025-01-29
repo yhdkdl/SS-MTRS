@@ -49,7 +49,7 @@ if (isset($_GET['id'])) {
             <label>Employee ID</label>
             <input type="text" name="emp_id" id="emp_id" class="form-control"  required
                    value="<?php echo isset($emp_data['emp_id']) ? $emp_data['emp_id'] : ''; ?>"
-                   <?php echo isset($_GET['id']) ? 'readonly' : ''; ?>>
+                   <?php echo isset($_GET['id']) ?  : ''; ?>>
           </div>
           <div class="form-group">
             <label for="fullName">Full Name</label>
@@ -76,9 +76,14 @@ if (isset($_GET['id'])) {
             </select>
           </div>
           <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" id="password" class="form-control" 
-                   <?php echo isset($emp_data['password']) ? '' : 'required'; ?> minlength="8">
+          <div class="form-group">
+    <?php if (!isset($_GET['id'])): // Show only if no ID is present (adding a new employee) ?>
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" class="form-control" 
+               required minlength="8">
+    <?php endif; ?>
+</div>
+
           </div>
         </div>
         <div class="modal-footer">

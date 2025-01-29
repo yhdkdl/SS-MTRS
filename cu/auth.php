@@ -15,7 +15,7 @@ class Auth {
         $query->bind_param('s', $email);
         $query->execute();
         $result = $query->get_result();
-
+    
         if ($result && $result->num_rows > 0) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
@@ -25,11 +25,14 @@ class Auth {
                     'name' => $user['name'],
                     'email' => $user['email'],
                 ];
+                $_SESSION['logged_in'] = true; // Mark session as logged in
+                $_SESSION['last_activity'] = time(); // Set activity timestamp
                 return true;
             }
         }
         return false; // Invalid credentials
     }
+    
 
     public function signup($name, $email, $password) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT); // Hash the password

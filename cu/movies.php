@@ -205,7 +205,7 @@ class Movie
     bookings.status, 
     bookings.payment_status, 
     bookings.receipt_img, 
-    bookings.ticket, 
+   
     GROUP_CONCAT(seats.seat_number SEPARATOR ', ') AS selected_seats, 
     showtime.start_time AS showtime, 
     showtime.id AS booking_showtime_id, -- Alias added
@@ -225,7 +225,7 @@ GROUP BY
     bookings.status, 
     bookings.payment_status, 
     bookings.receipt_img, 
-    bookings.ticket, 
+  
     showtime.start_time, 
     showtime.id, 
     movies.title, 
@@ -249,10 +249,10 @@ GROUP BY
     if (!in_array($file['type'], $allowed_types)) {
         throw new Exception("Invalid file type. Only JPG, PNG, and GIF files are allowed.");
     }
-
+// include "../employees/Front_desk_Officer/";
     // Generate a unique file name
     $file_name = 'receipt_' . $booking_id . '_' . time() . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
-    $upload_dir = 'uploads/';
+    $upload_dir = './employees/Front_desk_Officer/uploads/';
     $upload_path = $upload_dir . $file_name;
 
     // Create upload directory if it doesn't exist
@@ -264,6 +264,7 @@ GROUP BY
     if (!move_uploaded_file($file['tmp_name'], $upload_path)) {
         throw new Exception("Failed to save the uploaded file. Please try again.");
     }
+    
 
     // Update the database with the file name
     $query = "UPDATE bookings SET receipt_img = ? WHERE id = ? AND customer_id = ?";

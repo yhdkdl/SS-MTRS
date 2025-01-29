@@ -20,12 +20,16 @@ if ($action === 'save_movie') {
 }
 
 if ($action === 'save_showtime') {
-    $result = $showManager->saveShowtime($_POST);
-    echo $result;  // Return the result (1 for success or error message)
+    $response = $showManager ->saveShowtime($_POST);
+    if ($response === 1) {
+        echo '1'; // Success
+    } else {
+        echo $response; // Error message
+    }
 } elseif ($action === 'delete_showtime') {
-    $result = $showManager->deleteShowtime($_POST['id']);
-    echo $result;  // Return the result (1 for success or error message)
+    echo $showManager ->deleteShowtime($_POST['id']);
 } else {
-    echo 'Invalid action.';  // Handle invalid action
+    echo 'Invalid action.';
 }
+
 ?>

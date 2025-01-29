@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 
 // Start session to check for logged-in status
 session_start();
-
+Include "sessionManager.php";
 // Include the Database and Movie class files
 
 include 'movies.php';

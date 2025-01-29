@@ -1,7 +1,7 @@
 <?php 
 include '../includes/Database.php';
 include 'inserts.php';
- 
+
 $db = (new Database())->getConnection();
 $movieManager = new inserts($db);
 

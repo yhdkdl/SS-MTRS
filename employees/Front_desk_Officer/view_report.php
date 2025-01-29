@@ -3,12 +3,13 @@ session_start();
 require_once 'bookings.php'; // Assuming your class is named 'bookings'
 require('vendor/autoload.php'); // Assuming you're using Composer for FPDF autoload
 
-// Ensure the user is logged in and authorized
-// if (!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['Frontdeskofficer', 'admin'])) {
-//     header("Location: ../login.php");
-//     exit;
-// }
+require_once 'auth.php'; // Validate session
 
+// Check if the user has the correct role
+if ($userRole !== 'Frontdeskofficer') {
+    echo "<h1>Access Denied</h1>";
+    exit;
+}
 // Initialize database and bookings class
 $db = new Database();
 $conn = $db->getConnection();

@@ -2,8 +2,13 @@
 include '../includes/Database.php';
 include 'inserts.php';
 
+require_once 'auth.php'; // Validate session
 
-
+// Check if the user has the correct role
+if ($userRole !== 'Admin') {
+    echo "<h1>Access Denied</h1>";
+    exit;
+}
 
 $db = (new Database())->getConnection();
 $employee = new inserts($db);

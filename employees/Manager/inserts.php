@@ -125,11 +125,9 @@ $stmt->bind_param("sssssssi", $title, $description, $duration,$release_date, $yo
         return $result->fetch_assoc();
     }
 
-    // Save a showtime (either update or insert)
     public function saveShowtime($data) {
-        // Check if required fields are provided
         if (!isset($data['movie_id']) || !isset($data['room_id']) || !isset($data['start_time']) || !isset($data['price'])) {
-            return 'Error: Missing required fields (movie_id, room_id, start_time)';
+            return 'Error: Missing required fields (movie_id, room_id, start_time, price)';
         }
     
         $id = $data['id'] ?? null;
@@ -138,33 +136,82 @@ $stmt->bind_param("sssssssi", $title, $description, $duration,$release_date, $yo
         $start_time = $data['start_time'];
         $price = $data['price'];
     
-        // Convert start_time to MySQL-compatible datetime format (use 'Y-m-d H:i:s' format)
+        // Convert start_time to MySQL-compatible datetime format
         $start_time = date('Y-m-d H:i:s', strtotime($start_time));
     
-        // Debugging: Log the data being passed
-        error_log("Received data: movie_id=$movie_id, room_id=$room_id, start_time=$start_time,price=$price");
+        // Check for conflicts in the same room and time
+        if ($this->isShowtimeExists($room_id, $start_time, $id)) {
+            return 'Error: Showtime conflict in the same room and time.';
+        }
     
-        // Prepare the SQL statement based on whether it's an insert or update
+        // Check if the room is already occupied by a different movie or showtime
+        if ($this->isRoomOccupied($room_id, $movie_id, $id)) {
+            return 'Error: The room is occupied by another movie or showtime.';
+        }
+    
+        // Insert or update logic
         if ($id) {
             // Update existing showtime
-            $stmt = $this->db->prepare("UPDATE Showtime SET movie_id = ?, room_id = ?, start_time = ? , price = ? WHERE id = ?");
-            $stmt->bind_param('iisii', $movie_id, $room_id, $start_time,$price, $id);
+            $stmt = $this->db->prepare("UPDATE Showtime SET movie_id = ?, room_id = ?, start_time = ?, price = ? WHERE id = ?");
+            $stmt->bind_param('iisdi', $movie_id, $room_id, $start_time, $price, $id);
         } else {
             // Insert new showtime
-            $stmt = $this->db->prepare("INSERT INTO Showtime (movie_id, room_id, start_time,price) VALUES (?, ?, ?,?)");
-            $stmt->bind_param('iisi', $movie_id, $room_id, $start_time,$price);
+            $stmt = $this->db->prepare("INSERT INTO Showtime (movie_id, room_id, start_time, price) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param('iisd', $movie_id, $room_id, $start_time, $price);
         }
     
-        // Execute the statement
         if ($stmt->execute()) {
-            return 1; // Successfully saved
+            return 1;
         } else {
-            // Return the error message from the database if execution fails
-            $error_message = $stmt->error;
-            error_log("Error executing query: " . $error_message);  // Log the error for debugging
-            return "Error: " . $error_message;
+            return 'Error: ' . $stmt->error;
         }
     }
+    
+    // Check if a showtime already exists in the same room at the same time
+    public function isShowtimeExists($room_id, $start_time, $exclude_id = null) {
+        $query = "SELECT id FROM Showtime WHERE room_id = ? AND start_time = ?";
+        $params = [$room_id, $start_time];
+        $types = 'is';
+    
+        if ($exclude_id) {
+            $query .= " AND id != ?";
+            $params[] = $exclude_id;
+            $types .= 'i';
+        }
+    
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        return $result->num_rows > 0;
+    }
+    
+    // Check if a room is occupied by another movie or showtime
+    public function isRoomOccupied($room_id, $movie_id, $exclude_id = null) {
+        $query = "
+            SELECT id 
+            FROM Showtime 
+            WHERE room_id = ? 
+            AND movie_id != ?
+        ";
+        $params = [$room_id, $movie_id];
+        $types = 'ii';
+    
+        if ($exclude_id) {
+            $query .= " AND id != ?";
+            $params[] = $exclude_id;
+            $types .= 'i';
+        }
+    
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        return $result->num_rows > 0;
+    }
+    
     
   
     // Delete a showtime by ID

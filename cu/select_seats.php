@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 
 // Start session to check for logged-in status
 session_start();
-
+Include "sessionManager.php";
 // Include the Database and Movie class files
 
 include 'movies.php';
@@ -157,7 +157,7 @@ $seats = $movie->getSeatsByRoomId($room['room_id']);
                     <li><strong>Ebirr:</strong> 0912555555</li>
                 </ul>
                 <p>Once payment is completed and the receipt is sent, go to the <strong>My Bookings</strong> page (accessible by clicking your name on the header of the homepage) to check the status and await confirmation.</p>
-                <a href='index.php' style='display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #FFD700; color: #000; border-radius: 5px; text-decoration: none;'>Return to Home</a>
+                <a href='main.php' style='display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #FFD700; color: #000; border-radius: 5px; text-decoration: none;'>Return to Home</a>
             </div>
         `;
 

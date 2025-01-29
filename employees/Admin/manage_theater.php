@@ -4,7 +4,6 @@ declare(strict_types=1);
 include '../includes/Database.php';
 include 'inserts.php';
 
-
 $db = (new Database())->getConnection();
 $cinema = new inserts($db);
  
@@ -30,7 +29,7 @@ $meta = isset($_GET['id']) ? $cinema->getRoomById($_GET['id']) : [];
             </div>
             <div class="form-group">
     <label for="capacity" class="control-label">Capacity</label>
-    <input type="number" name="capacity" id="capacity" class="form-control" value="<?php echo $meta['capacity'] ?? '' ?>" required readonly>
+    <input type="number" name="capacity" id="capacity" class="form-control" value="<?php echo $meta['capacity'] ?? '' ?>" >
 </div>
 
             <div class="form-group">

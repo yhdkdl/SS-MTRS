@@ -36,22 +36,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $file = $_FILES['receipt'];
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
     if (!in_array($file['type'], $allowed_types)) {
-        die("Invalid file type. Only JPG, PNG, and GIF files are allowed.");
+        throw new Exception("Invalid file type. Only JPG, PNG, and GIF files are allowed.");
     }
 
-    // Generate a unique file name based on booking ID
+    // Generate a unique file name
     $file_name = 'receipt_' . $booking_id . '_' . time() . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
-    $upload_dir = 'uploads/';
-    $upload_path = $upload_dir . $file_name;
 
-    // Create upload directory if it doesn't exist
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
+    // Define absolute paths for the upload directories
+    $primary_dir = 'uploads/'; // Adjust to your desired location
+    $secondary_dir = './employees/Front_desk_Officer/uploads/'; // Adjust to your desired location
+    $primary_path = $primary_dir . $file_name;
+    $secondary_path = $secondary_dir . $file_name;
+
+    // Create directories if they don't exist
+    if (!is_dir($primary_dir)) {
+        mkdir($primary_dir, 0777, true);
+    }
+    if (!is_dir($secondary_dir)) {
+        mkdir($secondary_dir, 0777, true);
     }
 
-    // Move the uploaded file
-    if (!move_uploaded_file($file['tmp_name'], $upload_path)) {
-        die("Failed to save the uploaded file. Please try again.");
+    // Move the uploaded file to the primary location
+    if (!move_uploaded_file($file['tmp_name'], $primary_path)) {
+        throw new Exception("Failed to save the uploaded file in the primary directory. Please try again.");
+    }
+
+    // Copy the file to the secondary location
+    if (!copy($primary_path, $secondary_path)) {
+        throw new Exception("Failed to save the uploaded file in the secondary directory. Please try again.");
     }
 
    

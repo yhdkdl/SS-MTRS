@@ -1,7 +1,13 @@
 <?php
 
 require_once 'bookings.php';
+require_once 'auth.php'; // Validate session
 
+// Check if the user has the correct role
+if ($userRole !== 'Frontdeskofficer') {
+    echo "<h1>Access Denied</h1>";
+    exit;
+}
 
 // // Start the session at the top of the page
 
